@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Építőanyag rendelés</title>
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue:      #185FA5;
+  --blue-dark: #0C447C;
+  --blue-bg:   #E6F1FB;
+  --blue-text: #0C447C;
+  --green-bg:  #EAF3DE;
+  --green-text:#27500A;
+  --green-bdr: #3B6D11;
+  --red-bg:    #FCEBEB;
+  --red-bdr:   #F09595;
+  --red-text:  #A32D2D;
+  --surface-0: #f4f4f2;
+  --surface-1: #efefed;
+  --surface-2: #ffffff;
+  --text-pri:  #1a1a18;
+  --text-sec:  #5f5e5a;
+  --text-muted:#888780;
+  --border:    rgba(0,0,0,.10);
+  --border-str:rgba(0,0,0,.18);
+  --radius:    8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-0:#1c1c1a;
+    --surface-1:#252523;
+    --surface-2:#2e2e2b;
+    --text-pri: #f0ede8;
+    --text-sec: #a8a59e;
+    --text-muted:#6e6c66;
+    --border:   rgba(255,255,255,.09);
+    --border-str:rgba(255,255,255,.18);
+    --blue-bg:  #0c2d4a;
+    --blue-text:#85B7EB;
+    --green-bg: #172e0a;
+    --green-text:#97C459;
+    --green-bdr:#3B6D11;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--surface-0);
+  color: var(--text-pri);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── Layout wrapper ── */
+.app {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--surface-0);
+}
+
+@media (min-width: 480px) {
+  .app { max-width: 480px; }
+}
+
+@media (min-width: 768px) {
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    box-shadow: 0 0 0 0.5px var(--border-str);
+    background: var(--surface-0);
+  }
+}
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── Header ── */
+.hdr {
+  background: var(--surface-2);
+  border-bottom: 0.5px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  gap: 8px;
+}
+.hdr h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-pri);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hdr h1 svg { flex-shrink: 0; }
+
+.badge {
+  background: var(--blue);
+  color: #fff;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Section title ── */
+.sec-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 14px 16px 6px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+/* ── Product row ── */
+.prod-row {
+  background: var(--surface-2);
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 2px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 10px;
+  align-items: start;
+}
+
+.prod-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.prod-info {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+}
+
+.prod-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-pri);
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.prod-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 3px;
+}
+
+.prod-unit {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.prod-price {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+/* Qty control spans full width on second row */
+.qty-ctrl-wrap {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-label {
+  font-size: 13px;
+  color: var(--text-sec);
+  flex-shrink: 0;
+}
+
+.qty-ctrl {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.qb {
+  width: 44px;
+  height: 44px;
+  border: 0.5px solid var(--border-str);
+  background: var(--surface-1);
+  color: var(--text-pri);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .1s;
+}
+
+.qb:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.qb:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+.qb:active { background: var(--surface-0); }
+
+.qn {
+  width: 52px;
+  height: 44px;
+  border-top: 0.5px solid var(--border-str);
+  border-bottom: 0.5px solid var(--border-str);
+  background: var(--surface-2);
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-pri);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-subtotal {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  margin-left: auto;
+}
+
+/* ── Fixed bottom bar ── */
+.fixbar {
+  background: var(--surface-2);
+  border-top: 0.5px solid var(--border);
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+}
+
+@media (min-width: 480px) {
+  .fixbar { max-width: 480px; left: 50%; transform: translateX(-50%); }
+}
+@media (min-width: 768px) {
+  .fixbar { max-width: 520px; }
+}
+
+.page-scroll-pad { height: 80px; }
+
+/* ── Buttons ── */
+.bigbtn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, opacity .15s;
+}
+.bigbtn.blue { background: var(--blue); color: #fff; }
+.bigbtn.blue:active { background: var(--blue-dark); }
+.bigbtn.off  { background: var(--surface-1); color: var(--text-muted); pointer-events: none; }
+
+.abtn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.abtn.pri { background: var(--blue); color: #fff; }
+.abtn.pri:active { background: var(--blue-dark); }
+.abtn.sec {
+  background: var(--surface-1);
+  color: var(--text-pri);
+  border: 0.5px solid var(--border-str);
+  margin-top: 10px;
+}
+.abtn.sec:active { background: var(--surface-0); }
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--blue);
+  background: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* ── Cart items ── */
+.cart-row {
+  background: var(--surface-2);
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 2px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.ci-icon { font-size: 24px; text-align: center; }
+.ci-info { min-width: 0; }
+.ci-name { font-size: 14px; font-weight: 600; color: var(--text-pri); overflow-wrap: break-word; }
+.ci-sub  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ci-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.ci-price { font-size: 14px; font-weight: 600; color: var(--blue); }
+
+.rm-btn {
+  width: 32px;
+  height: 32px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+/* ── Summary box ── */
+.sumbox {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  margin: 12px 16px;
+  padding: 14px 16px;
+}
+
+.srow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  gap: 8px;
+}
+.srow.total {
+  border-top: 0.5px solid var(--border);
+  margin-top: 6px;
+  padding-top: 10px;
+}
+.slbl { font-size: 14px; color: var(--text-sec); }
+.sval { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.stot { font-size: 17px; font-weight: 700; }
+
+/* ── Info banners ── */
+.infobanner {
+  background: var(--blue-bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 10px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.infobanner svg { flex-shrink: 0; margin-top: 1px; }
+.infobanner p { font-size: 13px; color: var(--blue-text); line-height: 1.5; }
+
+.phone-callout {
+  background: var(--green-bg);
+  border-radius: 12px;
+  margin: 0 16px 14px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.phone-callout svg { flex-shrink: 0; margin-top: 2px; }
+.phone-callout-text p    { font-size: 14px; font-weight: 600; color: var(--green-text); margin-bottom: 3px; }
+.phone-callout-text span { font-size: 13px; color: var(--green-bdr); line-height: 1.5; }
+
+/* ── Form ── */
+.fsec { padding: 0 16px; }
+.fgrp { margin-bottom: 14px; }
+.flbl {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-sec);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.finp {
+  width: 100%;
+  padding: 13px 14px;
+  border: 0.5px solid var(--border-str);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-pri);
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+}
+.finp:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(24,95,165,.14);
+}
+textarea.finp { resize: none; }
+
+.ferr {
+  display: none;
+  background: var(--red-bg);
+  border: 0.5px solid var(--red-bdr);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--red-text);
+  line-height: 1.5;
+}
+
+/* ── Confirm hero ── */
+.confirm-hero {
+  background: var(--blue-bg);
+  border-radius: 12px;
+  margin: 14px 16px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.confirm-icon-wrap {
+  width: 56px;
+  height: 56px;
+  background: var(--blue);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+.confirm-title { font-size: 17px; font-weight: 700; color: var(--blue-text); margin-bottom: 6px; }
+.confirm-sub   { font-size: 13px; color: var(--blue); line-height: 1.5; }
+
+/* ── Confirm section card ── */
+.conf-card {
+  margin: 0 16px 10px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.conf-card-hdr {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.conf-card-hdr svg { color: var(--text-muted); }
+.conf-card-hdr span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.cdet-row {
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.cdet-row:last-child { border-bottom: none; }
+.cdet-lbl { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.cdet-val { font-size: 13px; font-weight: 600; color: var(--text-pri); text-align: right; word-break: break-word; }
+
+/* ── Item confirm rows ── */
+.item-conf-row {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.item-conf-row:last-child { border-bottom: none; }
+.item-conf-icon { font-size: 20px; text-align: center; }
+.item-conf-name { font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: break-word; }
+.item-conf-qty  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.item-conf-price{ font-size: 13px; font-weight: 700; color: var(--blue); white-space: nowrap; }
+
+.total-row {
+  padding: 13px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 0.5px solid var(--border);
+  background: var(--surface-1);
+}
+.total-row-lbl { font-size: 14px; font-weight: 600; }
+.total-row-val { font-size: 16px; font-weight: 700; color: var(--blue); }
+
+/* ── Success ── */
+.success-wrap { padding: 32px 24px 20px; text-align: center; }
+.success-icon {
+  width: 72px; height: 72px;
+  background: var(--green-bg);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 36px;
+}
+.success-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+.success-body  { font-size: 15px; color: var(--text-sec); line-height: 1.6; margin-bottom: 20px; }
+
+/* ── Spacing helpers ── */
+.pad-bottom { padding: 0 16px 16px; }
+.spacer-20  { height: 20px; }
+.spacer-16  { height: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══ PAGE: PRODUCTS ══ -->
+  <div id="page-products" class="page active">
+    <div class="hdr">
+      <h1>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Építőanyag rendelés
+      </h1>
+      <div class="badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span id="cart-count">0 db</span>
+      </div>
+    </div>
+
+    <div class="sec-title">Termékek</div>
+    <div id="product-list"></div>
+
+    <div class="page-scroll-pad"></div>
+
+    <div class="fixbar">
+      <button class="bigbtn off" id="to-cart-btn" onclick="goToCart()">
+        <span>Kosár megtekintése</span>
+        <span id="cart-total-preview">0 Ft</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: CART ══ -->
+  <div id="page-cart" class="page">
+    <div class="hdr"><h1>Kosár</h1></div>
+    <button class="back-btn" onclick="goTo('products')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Vissza a termékekhez
+    </button>
+
+    <div id="cart-items-list"></div>
+    <div class="sumbox" id="summary-box"></div>
+
+    <div class="infobanner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p>A rendelés nem fizethető ki online. Kollégánk telefonon egyezteti és véglegesíti a megrendelést.</p>
+    </div>
+
+    <div class="pad-bottom">
+      <button class="abtn pri" onclick="goTo('form')">Megrendelés folytatása →</button>
+    </div>
+    <div class="spacer-20"></div>
+  </div>
+
+  <!-- ══ PAGE: FORM ══ -->
+  <div id="page-form" class="page">
+    <div class="hdr"><h1>Szállítási adatok</h1></div>
+    <button class="back-btn" onclick="goTo('cart')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Vissza a kosárhoz
+    </button>
+
+    <div class="fsec">
+      <div class="fgrp">
+        <label class="flbl" for="inp-name">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Teljes név
+        </label>
+        <input class="finp" id="inp-name" type="text" placeholder="Kovács János" autocomplete="name">
+      </div>
+      <div class="fgrp">
+        <label class="flbl" for="inp-phone">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6.29 6.29l1.57-1.57a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Telefonszám
+        </label>
+        <input class="finp" id="inp-phone" type="tel" placeholder="+36 30 123 4567" autocomplete="tel">
+      </div>
+      <div class="fgrp">
+        <label class="flbl" for="inp-address">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Szállítási cím
+        </label>
+        <input class="finp" id="inp-address" type="text" placeholder="1234 Budapest, Példa u. 1." autocomplete="street-address">
+      </div>
+      <div class="fgrp">
+        <label class="flbl" for="inp-note">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Megjegyzés <span style="font-weight:400;color:var(--text-muted)">(opcionális)</span>
+        </label>
+        <textarea class="finp" id="inp-note" rows="3" placeholder="Pl. kapu kód, szállítási időpont kérés…"></textarea>
+      </div>
+
+      <div class="ferr" id="form-error"></div>
+
+      <button class="abtn pri" onclick="goToConfirm()">
+        Rendelés áttekintése →
+      </button>
+      <button class="abtn sec" onclick="goTo('cart')">Vissza</button>
+    </div>
+    <div class="spacer-20"></div>
+  </div>
+
+  <!-- ══ PAGE: CONFIRM ══ -->
+  <div id="page-confirm" class="page">
+    <div class="hdr"><h1>Rendelés áttekintése</h1></div>
+    <button class="back-btn" onclick="goTo('form')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Adatok módosítása
+    </button>
+
+    <div class="confirm-hero">
+      <div class="confirm-icon-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="confirm-title">Ellenőrizze megrendelését</div>
+      <div class="confirm-sub">Nézze át az adatokat, majd küldje el a rendelést. Kollégánk telefonon keresi fel a véglegesítéshez.</div>
+    </div>
+
+    <div class="conf-card">
+      <div class="conf-card-hdr">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Megrendelő adatai</span>
+      </div>
+      <div id="confirm-contact"></div>
+    </div>
+
+    <div class="conf-card">
+      <div class="conf-card-hdr">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span>Rendelt termékek</span>
+      </div>
+      <div id="confirm-items"></div>
+      <div class="total-row">
+        <span class="total-row-lbl">Bruttó végösszeg</span>
+        <span class="total-row-val" id="confirm-total"></span>
+      </div>
+    </div>
+
+    <div class="phone-callout">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green-bdr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6.29 6.29l1.57-1.57a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <div class="phone-callout-text">
+        <p>Hamarosan felhívjuk</p>
+        <span>A rendelés elküldése után irodánkból kollégánk telefonon keresi fel a megadott számon a rendelés véglegesítéséhez.</span>
+      </div>
+    </div>
+
+    <div class="pad-bottom">
+      <button class="abtn pri" onclick="submitOrder()">
+        Megrendelés elküldése →
+      </button>
+      <button class="abtn sec" onclick="goTo('form')">Vissza</button>
+    </div>
+    <div class="spacer-20"></div>
+  </div>
+
+  <!-- ══ PAGE: SUCCESS ══ -->
+  <div id="page-success" class="page">
+    <div class="hdr"><h1>Megrendelés elküldve</h1></div>
+
+    <div class="success-wrap">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Köszönjük megrendelését!</div>
+      <div class="success-body" id="success-body"></div>
+    </div>
+
+    <div class="phone-callout">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green-bdr)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 6.29 6.29l1.57-1.57a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <div class="phone-callout-text">
+        <p>Irodánkból hamarosan keresik</p>
+        <span id="success-phone-line">Kollégánk a megadott telefonszámon felveszi Önnel a kapcsolatot a rendelés véglegesítéséhez.</span>
+      </div>
+    </div>
+
+    <div class="conf-card" style="margin-bottom:14px">
+      <div class="conf-card-hdr" style="border-bottom:0.5px solid var(--border)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>Rendelés összesítő</span>
+      </div>
+      <div id="success-items"></div>
+      <div class="total-row">
+        <span class="total-row-lbl">Bruttó végösszeg</span>
+        <span class="total-row-val" id="success-total"></span>
+      </div>
+    </div>
+
+    <div class="pad-bottom">
+      <button class="abtn pri" onclick="resetAll()">+ Új rendelés</button>
+    </div>
+    <div class="spacer-20"></div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+const products = [
+  {id:1, name:"Portland cement CEM II 42,5", unit:"zsák (25 kg)", price:2490,  icon:"🏗️", color:"#E6F1FB"},
+  {id:2, name:"Tégla NF 250×120×65",          unit:"db",           price:89,    icon:"🧱", color:"#FAECE7"},
+  {id:3, name:"Kavics 0–16 mm",               unit:"tonna",        price:9800,  icon:"🪨", color:"#EAF3DE"},
+  {id:4, name:"Homok 0–4 mm",                 unit:"tonna",        price:8500,  icon:"⛱️", color:"#FAEEDA"},
+  {id:5, name:"Gipszkarton 12,5 mm",          unit:"lap (1200×2600)", price:1890,icon:"📋",color:"#EEEDFE"},
+  {id:6, name:"Ásványgyapot szigetelés 10 cm",unit:"m²",           price:1650,  icon:"🌡️", color:"#E1F5EE"},
+  {id:7, name:"Betonacél Ø8 mm",              unit:"méter",        price:390,   icon:"🔩", color:"#F1EFE8"},
+  {id:8, name:"Zsaluelem 25 cm",              unit:"db",           price:320,   icon:"📦", color:"#FBEAF0"},
+];
+
+let cart = {};
+
+const fmt = n => new Intl.NumberFormat('hu-HU').format(Math.round(n)) + ' Ft';
+
+/* ─── Render product list ─── */
+function renderProducts() {
+  document.getElementById('product-list').innerHTML = products.map(p => `
+    <div class="prod-row">
+      <div class="prod-icon" style="background:${p.color}">${p.icon}</div>
+      <div class="prod-info">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-meta">
+          <span class="prod-unit">${p.unit}</span>
+          <span class="prod-price">${fmt(p.price)} / ${p.unit}</span>
+        </div>
+      </div>
+      <div class="qty-ctrl-wrap">
+        <span class="qty-label">Mennyiség:</span>
+        <div class="qty-ctrl">
+          <button class="qb" onclick="chg(${p.id},-1)" aria-label="Csökkentés">−</button>
+          <div class="qn" id="qty-${p.id}">${cart[p.id] || 0}</div>
+          <button class="qb" onclick="chg(${p.id},1)" aria-label="Növelés">+</button>
+        </div>
+        <span class="qty-subtotal" id="sub-${p.id}">${cart[p.id] ? fmt(cart[p.id] * p.price) : ''}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ─── Change qty ─── */
+function chg(id, d) {
+  cart[id] = Math.max(0, (cart[id] || 0) + d);
+  if (!cart[id]) delete cart[id];
+  const el = document.getElementById('qty-' + id);
+  if (el) el.textContent = cart[id] || 0;
+  const sub = document.getElementById('sub-' + id);
+  if (sub) sub.textContent = cart[id] ? fmt(cart[id] * products.find(p => p.id == id).price) : '';
+  updateBar();
+}
+
+/* ─── Update bottom bar ─── */
+function updateBar() {
+  const total = Object.entries(cart).reduce((s, [id, q]) => {
+    const p = products.find(x => x.id == id);
+    return s + (p ? p.price * q : 0);
+  }, 0);
+  const count = Object.values(cart).reduce((s, q) => s + q, 0);
+  document.getElementById('cart-count').textContent = count + ' db';
+  document.getElementById('cart-total-preview').textContent = fmt(total);
+  const b = document.getElementById('to-cart-btn');
+  if (count > 0) { b.classList.remove('off'); b.classList.add('blue'); }
+  else           { b.classList.remove('blue'); b.classList.add('off'); }
+}
+
+function goToCart() {
+  if (Object.keys(cart).length) goTo('cart');
+}
+
+/* ─── Render cart ─── */
+function renderCart() {
+  const items = Object.entries(cart).map(([id, q]) => {
+    const p = products.find(x => x.id == id);
+    return { p, q, sub: p.price * q };
+  });
+  document.getElementById('cart-items-list').innerHTML = items.map(({ p, q, sub }) => `
+    <div class="cart-row">
+      <div class="ci-icon">${p.icon}</div>
+      <div class="ci-info">
+        <div class="ci-name">${p.name}</div>
+        <div class="ci-sub">${q} × ${fmt(p.price)}</div>
+      </div>
+      <div class="ci-right">
+        <div class="ci-price">${fmt(sub)}</div>
+        <button class="rm-btn" onclick="rmItem(${p.id})" aria-label="Törlés">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  const net = items.reduce((s, x) => s + x.sub, 0);
+  const vat = net * 0.27;
+  document.getElementById('summary-box').innerHTML = `
+    <div class="srow"><span class="slbl">Nettó összesen</span><span class="sval">${fmt(net)}</span></div>
+    <div class="srow"><span class="slbl">ÁFA (27%)</span><span class="sval">${fmt(vat)}</span></div>
+    <div class="srow total"><span class="slbl" style="font-weight:600">Bruttó végösszeg</span><span class="stot">${fmt(net + vat)}</span></div>
+  `;
+}
+
+function rmItem(id) {
+  delete cart[id];
+  updateBar();
+  renderCart();
+  if (!Object.keys(cart).length) goTo('products');
+}
+
+/* ─── Validate & go to confirm ─── */
+function goToConfirm() {
+  const name    = document.getElementById('inp-name').value.trim();
+  const phone   = document.getElementById('inp-phone').value.trim();
+  const address = document.getElementById('inp-address').value.trim();
+  const err     = document.getElementById('form-error');
+
+  if (!name || !phone || !address) {
+    err.style.display = 'block';
+    err.textContent = 'Kérjük töltse ki a kötelező mezőket: név, telefonszám, cím.';
+    return;
+  }
+  err.style.display = 'none';
+
+  const note = document.getElementById('inp-note').value.trim();
+
+  document.getElementById('confirm-contact').innerHTML = `
+    <div class="cdet-row"><span class="cdet-lbl">Név</span><span class="cdet-val">${name}</span></div>
+    <div class="cdet-row"><span class="cdet-lbl">Telefon</span><span class="cdet-val">${phone}</span></div>
+    <div class="cdet-row"><span class="cdet-lbl">Cím</span><span class="cdet-val">${address}</span></div>
+    ${note ? `<div class="cdet-row"><span class="cdet-lbl">Megjegyzés</span><span class="cdet-val">${note}</span></div>` : ''}
+  `;
+
+  const items = Object.entries(cart).map(([id, q]) => {
+    const p = products.find(x => x.id == id);
+    return { p, q, sub: p.price * q };
+  });
+
+  document.getElementById('confirm-items').innerHTML = items.map(({ p, q, sub }) => `
+    <div class="item-conf-row">
+      <div class="item-conf-icon">${p.icon}</div>
+      <div>
+        <div class="item-conf-name">${p.name}</div>
+        <div class="item-conf-qty">${q} ${p.unit}</div>
+      </div>
+      <div class="item-conf-price">${fmt(sub)}</div>
+    </div>
+  `).join('');
+
+  const net = items.reduce((s, x) => s + x.sub, 0);
+  document.getElementById('confirm-total').textContent = fmt(net * 1.27);
+
+  goTo('confirm');
+}
+
+/* ─── Submit order ─── */
+function submitOrder() {
+  const name  = document.getElementById('inp-name').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+
+  const items = Object.entries(cart).map(([id, q]) => {
+    const p = products.find(x => x.id == id);
+    return { p, q, sub: p.price * q };
+  });
+  const net = items.reduce((s, x) => s + x.sub, 0);
+
+  document.getElementById('success-body').textContent =
+    `${name} megrendelése rögzítve. Kollégánk a ${phone} számon keresi fel a véglegesítéshez.`;
+
+  document.getElementById('success-items').innerHTML = items.map(({ p, q, sub }) => `
+    <div class="item-conf-row">
+      <div class="item-conf-icon">${p.icon}</div>
+      <div>
+        <div class="item-conf-name">${p.name}</div>
+        <div class="item-conf-qty">${q} ${p.unit}</div>
+      </div>
+      <div class="item-conf-price">${fmt(sub)}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('success-total').textContent = fmt(net * 1.27);
+
+  goTo('success');
+}
+
+/* ─── Reset ─── */
+function resetAll() {
+  cart = {};
+  ['inp-name', 'inp-phone', 'inp-address', 'inp-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  updateBar();
+  renderProducts();
+  goTo('products');
+}
+
+/* ─── Navigation ─── */
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  window.scrollTo(0, 0);
+  if (page === 'cart') renderCart();
+}
+
+/* ─── Init ─── */
+renderProducts();
+updateBar();
+</script>
+</body>
+</html>
